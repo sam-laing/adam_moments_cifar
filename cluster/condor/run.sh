@@ -1,24 +1,13 @@
-# Define variables
-# NOTE: executable should be a full path
-LOGS_DIR=/home/slaing/minimalLM/llm_pretrain/logs
-executable=/home/slaing/minimalLM/cluster/condor/single_gpu/run.sh
+#!/bin/bash
+
+export HOME=/lustre/home/slaing
+
+source ~/miniforge3/etc/profile.d/conda.sh
+conda activate 312nets
 
 # Job specific vars
-config=/home/slaing/minimalLM/config/sweep_config.yaml
-n_jobs=16
+config=$1
+job_idx=$2 # CONDOR job arrays range from 0 to n-1
 
-# Args
-arguments = $(config) $(Process)
-
-# Logs
-error = $(LOGS_DIR)/err/job.$(Cluster).$(Process).err
-output = $(LOGS_DIR)/out/job.$(Cluster).$(Process).out
-log = $(LOGS_DIR)/log/job.$(Cluster).$(Process).log
-
-# Specs
-request_memory = 250000
-request_cpus = 12
-request_gpus = 1
-requirements = (TARGET.CUDADeviceName == "NVIDIA A100-SXM4-80GB")
-
-queue $(n_jobs)
+# Execute python script
+python /lustre/home/slaing/adam_moments/adam_moments_cifar/main.py --config=$config --job_idx=$job_idx

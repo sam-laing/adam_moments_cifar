@@ -1,5 +1,5 @@
 LOGS_DIR=/home/slaing/adam_moments/adam_moments_cifar/logs
-execuatable=/home/slaing/adam_moments/adam_moments_cifar/cluster/condor/run.sh  
+executable=/home/slaing/adam_moments/adam_moments_cifar/cluster/condor/run.sh  
 
 # job specific variables
 config=/home/slaing/adam_moments/adam_moments_cifar/config/config.yaml

@@ -2,6 +2,8 @@ seed: 100
 epochs: 101
 # want to log/plot the moments every E epochs.... (epochs + 1)% log_every = 0 gets best bang for buck
 log_every: 10 
+batch_size: 128
+plot_dir: "/fast/slaing/adam_moment_plots/"
 
 # AdamW parameters.... fused is faster
 lr: 0.001
@@ -11,6 +13,5 @@ beta1: 0.9
 beta2: 0.999
 dampening: 0.1
 eps: 1.e-8
-grad_clip: 1.0
 
-model: "resnet18"
+model: "lenet"
