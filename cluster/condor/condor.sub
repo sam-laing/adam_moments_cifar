@@ -1,0 +1,21 @@
+LOGS_DIR=/home/slaing/adam_moments/adam_moments_cifar/logs
+execuatable=/home/slaing/adam_moments/adam_moments_cifar/cluster/condor/run.sh  
+
+# job specific variables
+config=/home/slaing/adam_moments/adam_moments_cifar/config/config.yaml
+n_jobs=1
+
+#args
+arguments = $(config) $(Process)
+
+#logs
+error = $(LOGS_DIR)/err/job.$(Cluster).$(Process).err
+output = $(LOGS_DIR)/out/job.$(Cluster).$(Process).out
+log = $(LOGS_DIR)/log/job.$(Cluster).$(Process).log
+
+#specs
+request_memory = 12000
+request_cpus = 4
+request_gpus = 1
+
+queue $(n_jobs)
