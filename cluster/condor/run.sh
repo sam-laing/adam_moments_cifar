@@ -1,6 +1,11 @@
 #!/bin/bash
 
+hostname
+
 export HOME=/lustre/home/slaing
+export PATH=/usr/local/cuda/bin:$PATH
+export LD_LIBRARY_PATH=/usr/local/cuda/lib64:$LD_LIBRARY_PATH
+
 
 source ~/miniforge3/etc/profile.d/conda.sh
 conda activate 312nets

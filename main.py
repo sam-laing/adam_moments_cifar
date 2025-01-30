@@ -23,6 +23,15 @@ def main(_):
     CFG_PATH, JOB_IDX = FLAGS.config, FLAGS.job_idx
     cfg, _ = load_config(CFG_PATH, JOB_IDX)
     device = 'cuda' if torch.cuda.is_available() else 'cpu'
+    print(torch.cuda.is_available())
+    print(f"CUDA available: {torch.cuda.is_available()}")
+    print(f"CUDA device count: {torch.cuda.device_count()}")
+    print(f"CUDA current device: {torch.cuda.current_device()}")
+    print(f"CUDA device name: {torch.cuda.get_device_name(0)}")
+    print(f"CUDA_VISIBLE_DEVICES: {os.environ.get('CUDA_VISIBLE_DEVICES')}")
+
+    device = 'cuda' if torch.cuda.is_available() else 'cpu'
+    print(f"Using device: {device}")
     print(device)
 
 
@@ -74,9 +83,6 @@ def main(_):
     plot_path = os.path.join(cfg.plot_dir, net.__class__.__name__) 
 
 
-    if device == 'cuda':
-        net = torch.nn.DataParallel(net)
-        cudnn.benchmark = True
 
     criterion = nn.CrossEntropyLoss()
     optimizer = torch.optim.AdamW(
@@ -105,16 +111,37 @@ def main(_):
             correct += predicted.eq(targets).sum().item()
         print(f"Epoch: {epoch}, Loss: {train_loss / len(trainloader) }")
 
-
+    """
     for epoch in range(cfg.epochs):
         train(epoch)
 
         if epoch % cfg.log_every == 0:
             moments_dict = get_moments_dict(net, optimizer)
+
             for layer_name in moments_dict.keys():
+                if layer_name.startswith('module.'):
+                    layer_name = layer_name[len('module.'):]
+                    print(layer_name)
+                os.makedirs(os.path.join(plot_path, layer_name), exist_ok=True)
                 save_path = os.path.join(plot_path, layer_name)
                 save_layer_histogram_plots(epoch, moments_dict, layer_name, savepath = save_path)
         
+
+        scheduler.step()
+    """
+    for epoch in range(cfg.epochs):
+        train(epoch)
+
+        if epoch % cfg.log_every == 0:
+            moments_dict = get_moments_dict(net, optimizer)
+
+            for layer_name in moments_dict.keys():
+                if layer_name.startswith('module.'):
+                    layer_name = layer_name[len('module.'):]
+                    print(layer_name)
+                os.makedirs(os.path.join(plot_path, layer_name), exist_ok=True)
+                save_path = os.path.join(plot_path, layer_name)
+                save_layer_histogram_plots(epoch, moments_dict, layer_name, savepath=save_path)
 
         scheduler.step()
 """

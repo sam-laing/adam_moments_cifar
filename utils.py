@@ -80,6 +80,10 @@ def get_moments_dict(model, optimizer) -> dict:
     Returns a dictionary of the first and second moments of the optimizer's 
     moving averages for each layer
     """
+    # Handle DataParallel or DistributedDataParallel
+    if isinstance(model, (torch.nn.DataParallel, torch.nn.parallel.DistributedDataParallel)):
+        model = model.module
+
     param_to_name = {id(param): name for name, param in model.named_parameters()}
 
     # Dictionary to store exp_avg and exp_avg_sq
@@ -93,14 +97,25 @@ def get_moments_dict(model, optimizer) -> dict:
             state = optimizer.state[p]
             if 'exp_avg' in state and 'exp_avg_sq' in state:
                 layer_name = param_to_name.get(id(p), "Unknown Layer")
+                # Remove 'module.' prefix if it exists
+                if layer_name.startswith('module.'):
+                    layer_name = layer_name[len('module.'):]
                 moments_dict[layer_name] = {
                     'exp_avg': state['exp_avg'].cpu().numpy(),
                     'exp_avg_sq': state['exp_avg_sq'].cpu().numpy()
                 }
+            else:
+                print(f"State for parameter {param_to_name.get(id(p), 'Unknown Layer')} does not contain 'exp_avg' or 'exp_avg_sq'")
 
     return moments_dict
 
-def save_layer_histogram_plots(epoch, moments_dict, layer_name, savepath ):
+
+
+
+import os
+import matplotlib.pyplot as plt
+
+def save_layer_histogram_plots(epoch, moments_dict, layer_name, savepath):
     """
     Given the dictionary of moments for each layer, plot a histogram of the 
     exp_avg and exp_avg_sq for the specified layer and save plots in the correct folder
@@ -111,23 +126,33 @@ def save_layer_histogram_plots(epoch, moments_dict, layer_name, savepath ):
         if layer_moments is None:
             print(f"Layer {layer_name} not found in moments_dict")
             return
-        if layer_name.startswith('module.'):
-            layer_name = layer_name[len('module.'):]
+        
+        # Ensure the directories exist
+        exp_avg_path = os.path.join(savepath, 'exp_avg')
+        exp_avg_sq_path = os.path.join(savepath, 'exp_avg_sq')
+        os.makedirs(exp_avg_path, exist_ok=True)
+        os.makedirs(exp_avg_sq_path, exist_ok=True)
+        
+        print(f"Saving exp_avg plot to: {os.path.join(exp_avg_path, f'epoch_{epoch}.png')}")
+        print(f"Saving exp_avg_sq plot to: {os.path.join(exp_avg_sq_path, f'epoch_{epoch}.png')}")
 
         # Get the exp_avg and exp_avg_sq
         exp_avg = layer_moments['exp_avg']
         exp_avg_sq = layer_moments['exp_avg_sq']
 
-        # plot the exp_avg as a histogram
+        # Plot the exp_avg as a histogram
         plt.hist(exp_avg.flatten(), bins=50, alpha=0.95, edgecolor='black', color='#1f77b4')
-        plt.title(f"epoch {epoch} {layer_name} exp_avg")
-        # save the plot
-        plt.savefig(os.path.join(savepath, f"exp_avg/epoch_{epoch}.png"))
+        plt.title(f"epoch {epoch}, {layer_name} exp_avg")
+        # Save the plot
+        plt.savefig(os.path.join(exp_avg_path, f"epoch_{epoch}.png"))
+        plt.close()
 
-
+        # Plot the exp_avg_sq as a histogram
         plt.hist(exp_avg_sq.flatten(), bins=50, alpha=0.95, edgecolor='black', color='#1f77b4')
-        plt.title(f"epoch {epoch} {layer_name} exp_avg_sq")
-        plt.savefig(os.path.join(savepath, f"exp_avg/epoch_{epoch}.png"))
+        plt.title(f"epoch {epoch}, {layer_name} exp_avg_sq")
+        # Save the plot
+        plt.savefig(os.path.join(exp_avg_sq_path, f"epoch_{epoch}.png"))
+        plt.close()
     except Exception as e:
         print(f"Error in save_layer_histogram_plots: {e}")
 
