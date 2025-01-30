@@ -67,7 +67,7 @@ def main(_):
         net = MobileNet()
     elif cfg.model == "lenet":
         net = GoogLeNet()
-    elif cfg.model == "simpledla":
+    elif cfg.model == "simplelda":
         net = SimpleDLA()
     elif cfg.model == "efficientnet":
         net = EfficientNetB0()
